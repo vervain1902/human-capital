@@ -8,9 +8,15 @@ This is a project to calculate human capital.
 
 ## About 
 
-- This repo contains 1) preprocessed data, 2) descriptive analysis of data and 3) Stata scripts. 
+### Introduction
 
----
+This repo contains 1) preprocessed data, 2) descriptive analysis of data and 3) Stata scripts. 
+
+### Structure of scripts
+
+main is for running functions, including 1) macro variables, 2) population data, 3) cognitive skills and adjusted education year, 4) lihk method human capital estimating, and 5) regression of quantity and quality of human capital to economic growth and income gap. 
+
+We are now checking the descriptive results.
 
 ## References
 
