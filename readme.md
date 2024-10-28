@@ -1,13 +1,17 @@
 # Human capital estimation
+
 This is a project to calculate human capital.
 
 > Author: LiuZiyu
+
 > Created date: 2024/10/28
 
 ## About 
 
-This repo contains 1) preprocessed data, 2) descriptive analysis of data and 3) Stata scripts. 
+- This repo contains 1) preprocessed data, 2) descriptive analysis of data and 3) Stata scripts. 
+
 ---
+
 ## References
 
 黄斌 & 云如先. (2023). 教育发展何以强国——基于1960—2020年认知技能国际可比数据的实证分析. 教育研究, 44, 125–136.
