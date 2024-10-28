@@ -5,46 +5,38 @@ Proiect:  劳动力人力资本数量、质量与经济增长 - 劳动年龄人�
 Subproiect: Cog 
 Author:   liuziyu
 Create Date: 2023.12
-Edit Date:  2024.10.13
-
---------------------------------------------------
-
-This script is for: 
-	- 计算认知技能原始值：cfps20_0
-	- 数据清洗
-		- 删除缺失值，保留劳动年龄人口：cfps20_1
-		- 删除年龄组小组4的省份样本：cfps20_2
+Edit Date:  2024.10.28
 
 ==================================================*/
 
-*---1 计算2010-2020认知技能综合变量
-// 2012、2016、2020年：数列测试、字词记忆测试
+*---1 Generate micro cog and standardize cog by year across all provinces 
+// 2012, 2016, 2020 - 数列测试、字词记忆测试
 forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
-	use cfps`i'_0, clear // 认知技能原始得分
+	use cfps`i'_0, clear
 
 	if `i' == 12 | `i' == 16 | `i' == 20 {
-		// 基于全国样本标准化
+		// standardize cog by year across all provinces
 		gen wr = (iwr+dwr)/2
 		gen cog = (wr+ns)/2
 		egen st_cog = std(cog)
 	}
 
-// 2010、2014、2018年：字词测试、数学测试
+// 2010, 2014, 2018 - 字词测试、数学测试
 	else {
-		// 基于全国样本标准化
+		// standardize cog by year across all provinces
 		gen cog = (math + word)/2
 		egen st_cog = std(cog)
 	}
 	
-	label var cog "认知技能原始得分"
-	label var st_cog "标准化认知技能"
+	label var cog "raw value of cognitive skill"
+	label var st_cog "standardized value of cognitive skill"
 
-	save cfps`i'_0, replace // 标准化认知技能
+	save cfps`i'_0, replace
 }
 
-*---2 数据清洗
-*------2.1 保留劳动年龄人口，删除缺失值
+*---2 Clean data 
+*------2.1 Keep work_aged pop and delete missing vals
 forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
 	use cfps`i'_0, clear
@@ -70,7 +62,7 @@ forvalues i = 10(2)20 {
 	save cfps`i'_1, replace // 劳动年龄人口
 }
 
-*------2.2 删除年龄组样本量不足的省份
+*------2.2 Delete provinces whose number of age_groups is less than 4
 forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
 	use cfps`i'_1, clear
@@ -94,7 +86,7 @@ forvalues i = 10(2)20 {
 	duplicates drop age_group provcd, force
 	bys provcd: egen ngroup = count(age_group)
 	keep cyear provcd age_group ngroup
-	label var ngroup "历年各省年龄组数量"
+	label var ngroup "number of age groups by year"
 	cd "$mydir\2_Cog\worker"
 	save ngroup`i', replace
 
@@ -102,11 +94,9 @@ forvalues i = 10(2)20 {
 	merge m:1 provcd age_group using ngroup`i', nogen keep(match)
 	drop if ngroup < 4
 	
-*------2.3 构建变量
-	// 生成年龄平方项
+*------2.3 Construct secondary vars 
 	gen age2 = age^2
 
-	// 生成受教育年限分类变量
 	gen sch = 0
 	replace sch = 6 if eduy < 9 & eduy >= 6
 	replace sch = 9 if eduy < 12 & eduy >= 9
@@ -144,7 +134,7 @@ forvalues i = 10(2)20 {
 
 }
 
-*---3 合并历年认知技能
+*---3 Merge micro cog data each year 
 cd "$mydir\2_Cog\worker"
 use cfps20_2, clear
 forvalues i = 10(2)18 {

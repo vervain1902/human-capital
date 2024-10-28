@@ -14,10 +14,10 @@ import excel using 2010-2020_macrodata, firstrow clear // 来源：统计年鉴
 drop if cyear == 2008
 keep cyear provcd tpop wpop indus ratio
 
-label var ratio "城镇化率"
-label var wpop "劳动年龄人口数（人）"
-label var tpop "总人口数（人）"
-label var indus "第三产业比重"
+label var ratio "urbanisation rate"
+label var wpop "size of labor pop"
+label var tpop "size of total pop"
+label var indus "Share of tertiary sector"
 
 cd "$mydir\0_Macro"
 save tmp_tpop_indus, replace
@@ -31,7 +31,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var fai "固定资产投资（亿元）"
+label var fai "investment in fixed assets (billion yuan)"
 cd "$mydir\0_Macro"
 save tmp_fai, replace
 
@@ -42,7 +42,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var grow_rate "固定资产投资增长率"
+label var grow_rate "Growth rate of fai"
 cd "$mydir\0_Macro"
 save tmp_grow_rate, replace
 
@@ -53,7 +53,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var idx_fai "固定资产投资价格指数"
+label var idx_fai "price index of fai"
 cd "$mydir\0_Macro"
 mer 1:1 cyear provcd using tmp_fai, nogen
 mer 1:1 cyear provcd using tmp_grow_rate, nogen
@@ -73,7 +73,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var idx_ppi "工业品出厂价格指数"
+label var idx_ppi "industrial ex-factory price index"
 cd "$mydir\0_Macro"
 save tmp_idx_ppi, replace
 
@@ -84,12 +84,12 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var idx_ci "建筑业增加值价格指数"
+label var idx_ci "construction value added price index"
 cd "$mydir\0_Macro"
 
 mer 1:1 cyear provcd using tmp_idx_ppi, nogen 
 gen idx_fai_new = (idx_ppi+idx_ci)/2
-label var idx_fai_new "固定资产投资价格指数估算值"
+label var idx_fai_new "estimated price index for fai"
 mer 1:1 cyear provcd using tmp_fai, nogen
 replace idx_fai_new = idx_ppi if idx_fai_new == .
 replace idx_fai = idx_fai_new if idx_fai == .
@@ -99,7 +99,7 @@ sor cyear provcd
 bys provcd(cyear): replace idx_fai_base2010 = 100 if cyear == 2010
 bys provcd(cyear): replace idx_fai_base2010 = idx_fai_base2010[_n-1] * (idx_fai / 100) if cyear > 2010
 gen fai_base2010 = (fai / idx_fai_base2010) * 100
-label var fai_base2010 "2010年不变价固定资产投资（亿元）"
+label var fai_base2010 "fai at constant prices 2010 (billion yuan)"
 order cyear provcd fai_base2010 fai
 save tmp_fai, replace
 
@@ -133,7 +133,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var invest "一般公共预算支出（亿元）"
+label var invest "general public budget expenditure (billion yuan)"
 cd "$mydir\0_Macro"
 save tmp_invest, replace
 
@@ -144,7 +144,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var im_export "进出口总额(万美元)"
+label var im_export "total imports and exports ($ million)"
 cd "$mydir\0_Macro"
 save tmp_im_export, replace
 
@@ -162,7 +162,7 @@ cd "$mydir\0_Macro"
 use tmp_exchange, clear 
 mer 1:m cyear using tmp_im_export, nogen 
 gen im_export_rmb = im_export*exchange/100
-label var im_export_rmb "进出口总额（万元）"
+label var im_export_rmb "total imports and exports (ten thousand yuan)"
 drop im_export 
 save tmp_im_export, replace
 erase tmp_exchange.dta

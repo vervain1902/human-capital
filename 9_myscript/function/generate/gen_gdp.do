@@ -16,7 +16,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var gdp "名义gdp（亿元）"
+label var gdp "nominal gdp (billion RMB)"
 cd "$mydir\0_Macro"
 save tmp_gdp, replace
 
@@ -27,7 +27,7 @@ gen provcd_new = real(substr(provcd, 2, 2))
 drop provcd 
 ren provcd_new provcd
 destring(cyear), replace
-label var idx_gdp "gdp指数（上年=100）"
+label var idx_gdp "gdp idx (last year=100)"
 cd "$mydir\0_Macro"
 save tmp_idx_gdp, replace
 
@@ -37,7 +37,7 @@ bys provcd(cyear): replace idx_gdp_base2010 = 100 if cyear == 2010
 bys provcd(cyear): replace idx_gdp_base2010 = idx_gdp_base2010[_n-1] * (idx_gdp / 100) if cyear > 2010
 gen gdp_base2010 = (gdp / idx_gdp_base2010) * 100
 
-label var gdp_base2010 "2010年不变价gdp（亿元）"
+label var gdp_base2010 "2010 based gdp (billion RMB)"
 order cyear provcd gdp_base2010 gdp 
 save tmp_gdp, replace
 

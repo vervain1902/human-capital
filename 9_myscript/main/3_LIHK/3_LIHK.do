@@ -19,15 +19,15 @@ This script is for:
 
 ==================================================*/
 
-*--- 0.清空内存，定义路径
+*---0 Program set up
 cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
 do config.do
 
-*--- 1 读取所有年份收入数据
+*---1 read micro income data of all years from CFPS database
 cd "$scriptdir\function\read"
-do read_income.do // 运行从cfps读取收入的脚本
+do read_income.do
 
-*--- 2 链接微观收入与微观认知技能、【宏观数据、四分人口、平均认知技能】，生成交互项
+*---2 merge micro income data and [micro cognitive skill], [macro data, 4-fold pop, average cognitive skill], to generate intercept term
 cd "$mydir\3_LIHK"
 use 1_Inc, clear
 cd "$mydir\2_Cog\worker"
@@ -58,7 +58,7 @@ gen cog_trade = st_cog * trade
 label var cog_trade "认知技能与进出口比重的交乘项"
 
 cd "$mydir\3_LIHK"
-save 3_Macro_Pop4_Cog4_Inc, replace // 保存含有平均工资、GDP的微观数据
+save 3_Macro_Pop4_Cog4_Inc, replace
 
 /* // 分省描述平均工资、对数平均工资的变化趋势
 cd "$mydir\3_LIHK"
@@ -72,11 +72,11 @@ gr export "1_Pincome.png", as(png) replace
 twoway line Lpinc cyear, by(provcd) legend(off)
 gr export "2_LnPincome.png", as(png) replace */
 
-*--- 4 构建lihk指数
+*---3 generate lihk index
 cd "$funcdir\generate"
 do gen_lihk.do 
 
-*--- 5 描述lihk存量
+*---4 describe lihk stock
 cd "$funcdir\describe"
 do des_lihk.do 
 

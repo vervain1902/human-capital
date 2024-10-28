@@ -1,6 +1,7 @@
 * 创建省份与代码的映射表
-
-input str10 prov_hanzi str20 provcd_pinyin provcd
+cls
+clear 
+input str10 prov_hanzi str20 prov_pinyin provcd
 /* "全国" "quanguo" 0 */
 "北京" "beijing" 11
 "天津" "tianjin" 12
@@ -34,6 +35,16 @@ input str10 prov_hanzi str20 provcd_pinyin provcd
 "宁夏" "ningxia" 64
 "新疆" "xinjiang" 65
 end
+
+// 定义东、中、西部
+gen region = 1
+replace region = 3 if provcd == 15 | provcd == 45 | provcd == 50 | provcd == 51 | provcd == 52 | provcd == 53 | provcd == 54 | ///
+	provcd == 61 | provcd == 62 | provcd == 63 | provcd == 64 | provcd == 65 
+replace region = 2 if provcd == 14 | provcd == 22 | provcd == 23 | provcd == 34 | provcd == 36 | provcd == 41 | provcd == 42 | ///
+	provcd == 43 
+label define region 1 "east" 2 "center" 3 "west"
+label value region region
+label var region "区域"
 
 * 保存映射表
 cd "$mydir/0_Macro"

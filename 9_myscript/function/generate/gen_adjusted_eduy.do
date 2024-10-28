@@ -4,11 +4,11 @@ cls
 Proiect:  劳动力人力资本数量、质量与经济增长 - 计算受教育年限调整值
 Author:   liuziyu
 Created Date: 2023.12
-Last Edited Date:  2024.8.20
+Last Edited Date:  2024.10.28
 
 ==================================================*/
 
-*------ 3.1.估计受教育年限对认知技能的系数（不分年度，不同省份分样本回归）
+*---1 Estimate adjusting betas (edu_year to std_cog) [across years by prov]
 cd "$mydir\2_Cog\worker"
 use 1_Cog, clear
 forval i = 1/4 {
@@ -59,63 +59,50 @@ forval i = 1/3 {
 
 bys provcd: egen base = total(beta_m * (age_group == 1)) 
 gen a_beta = beta_m / base
-label var a_beta "受教育年限调整系数"
+label var a_beta "adjusting beta for avg education year"
 
 order provcd age_group a_beta
 sor provcd age_group
 
-save 4_Beta, replace
+save 5_Beta, replace
 erase beta4.dta
 erase beta4.csv
 
-// 链接受教育年限调整系数与分城乡、性别和年龄的三分人口（含宏观数据）
-cd "$mydir\1_Pop\worker"
-use 6_Macro_Pop3, clear
-cd "$mydir\2_Cog\worker"
-merge m:1 provcd age_group using 4_Beta, keep(match) nogen
+*---2 generate 3-fold pop (with macro vars) with beta, adjusted edu_year and avg std_cog
+merge 1:m provcd age_group using 3_Macro_Pop3_pCog3, keep(match) nogen
 gen a_peduy3 = peduy3 * a_beta // 调整后的三分人口平均受教育年限
 local vars "cyear provcd urban gender age age_group a_peduy3 peduy3" 
 order `vars'
 sor `vars' 
-label var a_peduy3 "三分人口人均受教育年限调整值"
-cd "$mydir\2_Cog\worker"
-save 5_Macro_Pop3_aEduy, replace
+label var a_peduy3 "adjusted avg education year of 3-fold"
+save 6_Macro_Pop3_pCog3_aEduy3, replace
 
-// 计算调整后的平均受教育年限二分人口数据
-cd "$mydir\2_Cog\worker"
-use 5_Macro_Pop3_aEduy, clear 
+*---3 generate 2-fold pop (with macro vars) with beta and adjusted edu_year and avg std_cog
+use 6_Macro_Pop3_pCog3_aEduy3, clear 
 gen a_eduy3 = eduy3 * a_beta // 调整后的三分人口总受教育年限
 local vars "cyear provcd urban gender"
 bys `vars': egen a_eduy2 = total(a_eduy3) // 调整后的总人口受教育年限
 bys `vars': egen pop2 = total(pop3) // 总人口
 gen a_peduy2 = a_eduy2 / pop2 // 调整后的总人口平均受教育年限
 duplicates drop `vars', force
-drop *3
-label var a_peduy2 "二分人口平均受教育年限调整值"
-label var a_eduy2 "二分人口受教育年限调整值"
-label var pop2 "二分人口数"
-cd "$mydir\2_Cog\worker"
-save 6_Macro_Pop2_aEduy, replace // 保存二分人口平均受教育年限调整值
+drop *3 age*
+label var a_peduy2 "adjusted avg education year of 2-fold"
+label var a_eduy2 "adjusted total education year of 2-fold"
+label var pop2 "size of 2-fold"
+mer 1:1 cyear provcd urban gender using 4_Macro_Pop2_pCog2, nogen
+save 7_Macro_Pop2_pCog2_aEduy2, replace // 保存二分人口平均受教育年限调整值
 
-// 计算调整后的平均受教育年限总人口数据
-cd "$mydir\2_Cog\worker"
-use 5_Macro_Pop3_aEduy, clear 
+*---4 generate 0-fold pop (with macro vars) with beta and adjusted edu_year and avg std_cog
+use 6_Macro_Pop3_pCog3_aEduy3, clear 
 gen a_eduy3 = eduy3 * a_beta // 调整后的三分人口总受教育年限
 local vars "cyear provcd"
 bys `vars': egen a_eduy0 = total(a_eduy3) // 调整后的总人口受教育年限
 bys `vars': egen pop0 = total(pop3) // 总人口
 gen a_peduy0 = a_eduy0 / pop0 // 调整后的总人口平均受教育年限
 duplicates drop `vars', force
-drop *3 urban gender age age_group
-label var a_peduy0 "劳动年龄人口平均受教育年限调整值"
-label var a_eduy0 "劳动年龄人口受教育年限调整值"
-label var pop0 "总人口数"
-cd "$mydir\2_Cog\worker"
-save 7_Macro_Pop0_aEduy, replace // 保存总人口平均受教育年限调整值
-
-mer 1:1 cyear provcd using 4_Cog0, nogen
-cd "$mydir\1_Pop\worker"
-mer 1:1 cyear provcd using 5_Pop0, nogen
-
-cd "$mydir\2_Cog\worker"
-save 7_Macro_Pop0_aEduy_Cog, replace // 保存总人口平均受教育年限调整值
+drop *3 urban gender age*
+label var a_peduy0 "adjusted avg education year of 0-fold"
+label var a_eduy0 "adjusted total education year of 0-fold"
+label var pop0 "size of 0-fold"
+mer 1:1 cyear provcd using 5_Macro_Pop0_pCog0, nogen
+save 8_Macro_Pop0_pCog0_aEduy0, replace // 保存总人口平均受教育年限调整值

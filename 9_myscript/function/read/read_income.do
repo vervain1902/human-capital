@@ -1,9 +1,19 @@
-*--- 0 清空内存，定义路径
+cls
+/*==================================================
+
+Proiect:  劳动力人力资本数量、质量与经济增长 - read micro income data
+Author:   liuziyu
+Create Date: 2023.12
+Edit Date:  2024.10.28
+
+==================================================*/
+
+*---0 Program set up
 cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
 do config.do
 
-*--- 3 读取CFPS收入数据
-*------ 3.1 处理2020年个人自答问卷，保留变量	
+*---1 Read micro income data from CFPS database
+*------1.1 处理2020年个人自答问卷，保留变量	
 cd "$rawdir\2010-2020-CFPS"
 use cfps2020person_202306, clear
 replace cyear = 2020
@@ -41,7 +51,7 @@ drop if incomea == .
 drop if incomeb == . & incomeb_imp == .
 gen inc = incomea + incomeb
 replace inc = incomea + incomeb_imp if incomeb == .
-label var inc "总收入"
+label var inc "total income"
 drop income*
 cd "$mydir\3_LIHK"
 save inc_16, replace
@@ -82,7 +92,7 @@ forvalues i = 1/10 {
 
 gen wage = qg417 + qg420
 misstable sum wage 
-label var wage "工资性收入"
+label var wage "salary income"
 
 // 农村收入计算
 /// 帮工收入
@@ -107,10 +117,10 @@ foreach i in fl3 fl7 fl8 fl4 fl9 {
 gen net_agri = (fl3+fl7+fl8-fl4-fl9)
 misstable sum net_agri
 gen agri_inc = net_agri * agri_ratio
-label var agri_inc "农业生产收入"
+label var agri_inc "agricultural income"
 gen inc = wage + agri_inc
 replace inc = wage if urban == 1
-label var inc "总收入"
+label var inc "total income"
 /* drop inc_1 */
 drop inc 
 rename inc_1 inc
@@ -138,7 +148,7 @@ forvalues i = 1/6 {
 }
 gen wage = 12 * (qk101 + qk102 + qk103 + qk104 + qk105 + qk106)
 misstable sum wage 
-label var wage "工资性收入"
+label var wage "salary income"
 
 // 农村收入计算：家庭收入按劳动时间比例分配到个人
 forvalues i = 1/3 {
@@ -154,11 +164,11 @@ merge m:1 fid using cfps2010famecon_201906, keepusing(net_agri) keep(match) noge
 replace net_agri = 0 if net_agri == -8 
 replace net_agri = . if net_agri < 0 
 gen agri_inc = net_agri * agri_ratio
-label var agri_inc "农业生产收入"
+label var agri_inc "agricultural income"
 misstable sum agri_inc 
 gen inc = wage + agri_inc
 replace inc = wage if urban == 1 
-label var inc "总收入" 
+label var inc "total income" 
 
 local vars "pid cyear provcd gender urban age eduy inc employ"
 keep pid `vars'
@@ -210,14 +220,14 @@ replace sch = 12 if eduy > 9 & eduy <= 12
 replace sch = 15 if eduy > 12 & eduy <= 15
 replace sch = 16 if eduy > 15
 
-label var provcd "省份"
-label var urban "城乡"
-label var gender "性别"
-label var age "年龄"
-label var eduy "受教育年限"
-label var inc "年收入（元）"
-label var exp "工作经验"
-label var exp2 "工作经验平方"
-label var Linc "对数年收入"
+label var provcd "province code"
+label var urban "rural=0"
+label var gender "female=0"
+label var age "CFPS age"
+label var eduy "CFPS edu_year"
+label var inc "income per year (RMB)"
+label var exp "working year"
+label var exp2 "working year^2"
+label var Linc "log income per year"
 
 save 1_Inc, replace // 保存基于CFPS调查数据的微观数据
