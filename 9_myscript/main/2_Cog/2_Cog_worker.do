@@ -1,7 +1,7 @@
 cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 劳动年龄人口认知技能
+Proiect:  劳动力人力资本数量、质量与经济增长 - Cognitive skill of labor population
 Subproiect: Cog 
 Author:   liuziyu
 Create Date: 2023.12
@@ -41,9 +41,9 @@ do config.do
 
 *---1 read micro cog data 
 cd "$funcdir\read"
-do read_cog.do // 运行从cfps读取认知技能的脚本
+do read_cog.do
 
-*---2 generate std micro cog data, clean data and construct secodary vars
+*---2 generate micro std_cog data, clean data and construct secodary vars
 cd "$funcdir\generate"
 do gen_cog.do
 

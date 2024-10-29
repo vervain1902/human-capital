@@ -1,12 +1,14 @@
+cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 配置文件
+Proiect:  劳动力人力资本数量、质量与经济增长 - Config
 Author:   liuziyu
 Created Date: 2023.12
 Last Edited Date:  2024.10.28
 
 ------
-config: define 1) working paths, 2) province codes and 3) plot style.
+This script is for:
+	defining 1) working paths, 2) province codes and 3) plot style.
 
 ==================================================*/
 

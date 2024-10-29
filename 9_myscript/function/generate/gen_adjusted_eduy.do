@@ -1,7 +1,7 @@
 cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 计算受教育年限调整值
+Proiect:  劳动力人力资本数量、质量与经济增长 - Adjusted Education Year
 Author:   liuziyu
 Created Date: 2023.12
 Last Edited Date:  2024.10.28
@@ -60,10 +60,11 @@ forval i = 1/3 {
 bys provcd: egen base = total(beta_m * (age_group == 1)) 
 gen a_beta = beta_m / base
 label var a_beta "adjusting beta for avg education year"
-
+cd "$mydir\0_Macro"
+mer m:1 provcd using province_codes, nogen keep(match)
 order provcd age_group a_beta
 sor provcd age_group
-
+cd "$mydir\2_Cog\worker"
 save 5_Beta, replace
 erase beta4.dta
 erase beta4.csv

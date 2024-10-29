@@ -2,7 +2,7 @@ cls
 
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 宏观数据
+Proiect:  劳动力人力资本数量、质量与经济增长 - Macro Data
 Author:   liuziyu
 Create Date: 2023.12
 Edit Date:  2024.10.28
@@ -34,7 +34,8 @@ do gen_gdp.do
 cd "$scriptdir\function\generate"
 do gen_pwage.do
 
-*---3 generate covariates: K, pop, urbanization_ratio, third_indus_ratio, gov_invest, import and export trade
+*---3 generate covariates: 
+*		K, pop, urbanization_ratio, third_indus_ratio, gov_invest, import and export trade
 cd "$scriptdir\function\generate"
 do gen_covariates.do
 

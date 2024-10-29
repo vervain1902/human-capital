@@ -5,18 +5,18 @@ Proiect:  劳动力人力资本数量、质量与经济增长 - 劳动年龄人�
 Subproiect: Cog 
 Author:   liuziyu
 Create Date: 2023.12
-Edit Date:  2024.10.13
+Edit Date:  2024.10.29
 
 --------------------------------------------------
 
 This script is for: 
-	- 描述认知技能
-	- 描述调整系数
-	- 描述受教育年限原始值与调整值
+	1) describing cognitive skill and std_cog, 
+	2) describing adjusting beta, 
+	3) describing avg edu_year and avg adj_edu_year.
 
 ==================================================*/
 
-*---1 描述认知技能
+*---1 describing cognitive skill and std_cog
 // 创建一个局部宏，用于存储各年的图形名
 forvalues i = 10(2)20 {
     cd "$mydir\2_Cog\worker"
