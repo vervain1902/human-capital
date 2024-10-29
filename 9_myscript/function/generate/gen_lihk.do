@@ -1,7 +1,7 @@
 cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 计算lihk指数
+Proiect:  劳动力人力资本数量、质量与经济增长 - estimate lihk index [with cog]
 Author:   liuziyu
 Created Date: 2023.12
 Last Edited Date:  2024.10.28
@@ -13,7 +13,7 @@ Last Edited Date:  2024.10.28
 // 不含交互项，估计原始方程
 forvalues i = 2010(2)2020 {
 	cd "$mydir\3_LIHK"
-	use 3_Macro_Pop4_Cog4_Inc, clear
+	use 2_Macro_Pop0_pCog0_aEduy0_Cog_Inc, clear
 	// use 1_LIHK, clear
 	duplicates drop cyear pid, force 
 	keep if cyear == `i'
@@ -74,7 +74,7 @@ forvalues i = 2010(2)2020 {
 	di("*--------------------------------------------------------*")
 	reg Linc avwage eduy eduy_wy eduy_indus eduy_gov eduy_trade st_cog cog_wy cog_indus cog_gov cog_trade exp exp2 
 
-*------ 2.2.分样本回归：城市男性/城市女性/农村男性/农村女性
+*------1.2 分样本回归：城市男性/城市女性/农村男性/农村女性
 	di _newline(3)
 	foreach a in 0 1 {     
 		foreach b in 0 1 {
@@ -110,7 +110,7 @@ forvalues i = 2010(2)2020 {
 		}		
 	}	
 
-*------ 2.3.根据分省份、城乡的平均工资水平，调整估计出的系数
+*------1.3 根据分省份、城乡的平均工资水平，调整估计出的系数
 	gen intercept = b_cons + b_avwage * avwage
 	gen idx_eduy = b_eduy + b_eduy_wy * wy / 1000 + b_eduy_indus * indus
 	gen idx_cog = b_st_cog + b_cog_wy * wy / 1000 + b_cog_indus * indus
@@ -146,7 +146,7 @@ forvalues i = 2010(2)2020 {
 	erase `i'_int11.dta
 }
 
-*------ 2.4.合并历年Mincer系数，保存个体层面数据
+*------1.4 合并历年Mincer系数，保存个体层面数据
 cd "$mydir\3_LIHK\MincerParam"
 use 2010_param, clear
 forvalues i = 2012(2)2020 {
@@ -157,7 +157,7 @@ erase 2010_param.dta
 keep cyear provcd urban gender age eduy st_cog cog* exp* idx* int* 
 save 1_Param, replace
 
-*------ 2.5.Mincer方程参数（截距、受教育年限、认知技能、工作经验、工作经验平方项）对时间回归，得到参数拟合值
+*------1.5 Mincer方程参数（截距、受教育年限、认知技能、工作经验、工作经验平方项）对时间回归，得到参数拟合值
 cd "$mydir\3_LIHK\MincerParam"
 use 1_Param, clear
 
@@ -230,7 +230,7 @@ merge 1:m `vars' using 1_Param, nogen keep(match)
 save 2_Param_estimate, replace
 erase tmp_idx.dta
 
-*------ 2.6.基于拟合参数，计算人力资本指数
+*------1.6 基于拟合参数，计算人力资本指数
 // 标准工人：农村女性
 cd "$mydir\3_LIHK\MincerParam"
 use 2_Param_estimate, clear
@@ -261,8 +261,8 @@ sor `vars'
 keep `vars' avg_idx_h
 save 2_ParamGroup1, replace
 
-*--- 3.分年份、分省份计算人力资本存量
-*------3.1.链接CHLR的四分人口
+*---2 分年份、分省份计算人力资本存量
+*------2.1 链接CHLR的四分人口
 cd "$mydir\3_LIHK\MincerParam"
 use 2_ParamGroup1, clear 
 cd "$mydir\2_Cog\worker"

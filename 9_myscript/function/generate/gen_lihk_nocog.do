@@ -1,20 +1,19 @@
 cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 计算lihk指数（不含认知技能）
+Proiect:  劳动力人力资本数量、质量与经济增长 - estimate lihk index [without cog]
 Author:   liuziyu
 Created Date: 2023.12
-Last Edited Date:  2024.10.28
+Last Edited Date:  2024.10.29
 
 ==================================================*/
 
-*---1 分年度，估计城市/农村、男性/女性4个Mincer方程
-*------1.1 全样本回归
-// 不含交互项，估计原始方程
+*---1 estimate 4 Mincer equations [urban*gender] by year
+*------1.1 full-sample regression
+// reg without x-terms
 forvalues i = 2010(2)2020 {
 	cd "$mydir\3_LIHK"
-	use 3_Macro_Pop4_Cog4_Inc, clear
-	// use 1_LIHK, clear
+	use 2_Macro_Pop0_pCog0_aEduy0_Cog_Inc, clear
 	duplicates drop cyear pid, force 
 	keep if cyear == `i'
 
@@ -24,55 +23,55 @@ forvalues i = 2010(2)2020 {
 			di("Coefficients of Variable eduy, cog, exp, exp2 for Year `i' is Estimated.")
 			di("Subgroup: Gender = `a' and Urban = `b'.")
 			di("*--------------------------------------------------------*")
-			// local vars "Linc eduy exp exp2"
 			local vars "Linc eduy exp exp2"
 			reg `vars' if gender == `a' & urban == `b'
 			sum `vars' if gender == `a' & urban == `b'
 		}
 	}
 
-// 加入交互项
+// reg with x-terms
 	local vars "cons eduy eduy_wy eduy_indus exp exp2 avwage"
-	// local vars "cons eduy exp exp2 avwage"
 	foreach v in `vars' {
 		gen b_`v' = .
 	}
 	gen a = .
 	
-	// 初始模型
+	// model0: without x-terms
 	di _newline(3)
 	di("*--------------------------------------------------------*")
 	di "reg Linc eduy exp exp2"
 	di("*--------------------------------------------------------*")
 	reg Linc eduy exp exp2
 
-	// 增加教育年限交互项估计
+	// model1: with x-terms [eduy*wy]
 	di _newline(3)
 	di("*--------------------------------------------------------*")
 	di "reg Linc avwage eduy eduy_wy exp exp2"	
 	di("*--------------------------------------------------------*")
-	reg Linc avwage eduy eduy_wy eduy_indus exp exp2
+	reg Linc avwage eduy eduy_wy exp exp2
 
-*------ 2.2.分样本回归：城市男性/城市女性/农村男性/农村女性
+*------1.2 by-sample regression [urban male/urban female/rural male/rural female]
 	di _newline(3)
 	foreach a in 0 1 {     
 		foreach b in 0 1 {
 			di "urban = "`a'
 			di "gender = "`b'
-			// 原始模型：不含交互项
-			reg Linc eduy exp exp2 if urban == `a' & gender == `b'
-			sum Linc eduy exp exp2 if urban == `a' & gender == `b'
+
+			// model0: without x-terms
+			local vars "Linc eduy exp exp2"
+			reg `vars' if urban == `a' & gender == `b'
+			sum `vars' if urban == `a' & gender == `b'
 			predict ooo, xb    
 			gen lyhat = exp(ooo) if urban == `a' & gender == `b'
 			reg Linc lyhat, nocon
 			drop ooo lyhat
 			
-			//增加交互项，重新估计
-			di "reg Linc avwage eduy eduy_wy eduy_indus exp exp2"
-			reg Linc avwage eduy eduy_wy eduy_indus exp exp2 ///
+			// model1: with x-terms [eduy*wy]
+			di "reg Linc avwage eduy eduy_wy exp exp2"
+			reg Linc avwage eduy eduy_wy exp exp2 ///
 				if urban == `a' & gender == `b'
 			
-			//保存Mincer系数
+			// 保存Mincer系数
 			replace b_cons = _b[_cons] if urban == `a' & gender == `b'  
 			local vars "avwage eduy eduy_wy eduy_indus exp exp2"
 			foreach v in `vars' {
@@ -81,9 +80,9 @@ forvalues i = 2010(2)2020 {
 			
 			//计算alpha
 			predict idx, xb                   
-			gen mi = exp(idx) if urban==`a' & gender==`b'           
+			gen mi = exp(idx) if urban ==`a' & gender ==`b'           
 			reg Linc mi, noconstant       
-			replace a = _b[mi] if urban==`a' & gender==`b'
+			replace a = _b[mi] if urban ==`a' & gender ==`b'
 			drop idx mi
 			di _newline(3)
 		}		

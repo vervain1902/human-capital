@@ -14,6 +14,7 @@ Edit Date:  2024.10.28
 forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
 	use cfps`i'_0, clear
+	gen 
 
 	if `i' == 12 | `i' == 16 | `i' == 20 {
 		// standardize cog by year across all provinces

@@ -21,4 +21,7 @@ setwd(file.path(desdir, "3_LIHK"))
 dfSummary(df_inc) %>% stview()
 
 p_missvar <- gg_miss_var(df_inc)
-p_missvar_cross <- gg_miss_upset(df_nc)
+plot_name <- file.path(desdir, "3_LIHK", "miss_val.jpg")
+ggsave(plot_name, plot = p_missvar, width = 10, height = 6, dpi = 300)
+
+

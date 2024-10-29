@@ -235,4 +235,4 @@ label var exp "working year"
 label var exp2 "working year^2"
 label var Linc "log income per year"
 
-save 1_Inc, replace // 保存基于CFPS调查数据的微观数据
+save 1_Inc, replace 
