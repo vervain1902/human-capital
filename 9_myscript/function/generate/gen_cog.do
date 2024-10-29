@@ -10,19 +10,19 @@ Edit Date:  2024.10.28
 ==================================================*/
 
 *---1 Generate micro cog and standardize cog by year across all provinces 
-// 2012, 2016, 2020 - 数列测试、字词记忆测试
+// 2012, 2016, 2020 - test of [number serial] and [word memory]
 forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
 	use cfps`i'_0, clear
 
 	if `i' == 12 | `i' == 16 | `i' == 20 {
 		// standardize cog by year across all provinces
-		gen wr = (iwr+dwr)/2
-		gen cog = (wr+ns)/2
+		gen wr = (iwr + dwr) / 2
+		gen cog = (wr + ns) / 2
 		egen st_cog = std(cog)
 	}
 
-// 2010, 2014, 2018 - 字词测试、数学测试
+// 2010, 2014, 2018 - test of [word] and [math]
 	else {
 		// standardize cog by year across all provinces
 		gen cog = (math + word)/2

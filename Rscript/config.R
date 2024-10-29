@@ -11,6 +11,10 @@ rm(list = ls())
 
 library(tidyverse)
 library(rio)
+library(summarytools)
+library(naniar)
+library(skimr)
+library(GGally)
 library(paletteer)
 
 # 设置全局路径变量 ----
@@ -44,3 +48,5 @@ prov_4_hanzi <- c("北京", "天津", "河北", "山西", "辽宁", "吉林", "�
                   "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东", 
                   "河南", "湖北", "湖南", "广东", "广西", "重庆", "四川", 
                   "贵州", "云南", "西藏", "陕西")
+
+colors <- scale_color_paletteer_d("palettetown::lairon")

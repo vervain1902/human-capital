@@ -13,7 +13,7 @@ cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
 do config.do
 
 *---1 Read micro income data from CFPS database
-*------1.1 处理2020年个人自答问卷，保留变量	
+*------1.1 CFPS 2020	
 cd "$rawdir\2010-2020-CFPS"
 use cfps2020person_202306, clear
 replace cyear = 2020
@@ -23,7 +23,7 @@ rename (`vars') (provcd urban eduy inc)
 cd "$mydir\3_LIHK"
 save inc_20, replace
 
-*------ 3.2 处理2018年个人自答问卷，保留变量
+*------1.2 CFPS 2018
 cd "$rawdir\2010-2020-CFPS"
 use cfps2018person_202012, clear
 replace cyear = 2018
@@ -33,7 +33,7 @@ rename (`vars') (provcd urban eduy inc)
 cd "$mydir\3_LIHK"
 save inc_18, replace
 
-*------ 1.3.处理2016年个人自答问卷，保留变量
+*------1.3 CFPS 2016
 cd "$rawdir\2010-2020-CFPS"
 use cfps2016adult_201906, clear
 replace cyear = 2016
@@ -41,7 +41,7 @@ local vars "provcd16 urban16 cfps_gender cfps_age cfps2016eduy_im"
 keep pid cyear incomea incomeb incomeb_imp employ `vars'
 rename (`vars') (provcd urban gender age eduy)
 
-* 合成个人总收入=一般工作收入+主要工作收入
+// personal income = general wage (incomea) + main wage (incomeb)
 foreach i in incomea incomeb incomeb_imp {
 	replace `i' = . if `i' < 0
 	misstable sum `i'
@@ -56,7 +56,7 @@ drop income*
 cd "$mydir\3_LIHK"
 save inc_16, replace
 
-*------ 1.4.处理2014年个人自答问卷，保留变量
+*------1.4 CFPS 2014
 cd "$rawdir\2010-2020-CFPS"
 use cfps2014adult_201906, clear
 replace cyear = 2014
@@ -66,7 +66,7 @@ rename (`vars') (provcd urban gender age eduy inc employ)
 cd "$mydir\3_LIHK"
 save inc_14, replace
 
-*------ 1.5.处理2012年个人自答问卷，保留变量
+*------1.5 CFPS 2012
 cd "$rawdir\2010-2020-CFPS"
 use cfps2012adult_201906, clear
 replace cyear = 2012
@@ -74,8 +74,8 @@ local vars "urban12 cfps2012_gender_best cfps2012_age eduy2012 income_adj"
 keep pid fid12 cyear provcd qg417* qg420* qg305 qg20* employ `vars'
 rename (`vars') (urban gender age eduy inc_1)
 
-// 城市收入计算
-/// 工资性收入
+// urban income 
+// salary income 
 gen qg420 = 0
 forvalues i = 1/50 {
 	replace qg420_a_`i' = 0 if qg420_a_`i' == -8
@@ -94,11 +94,11 @@ gen wage = qg417 + qg420
 misstable sum wage 
 label var wage "salary income"
 
-// 农村收入计算
+// rural income 
 /// 帮工收入
 // replace qg305 = 0 if qg305 < 0 
 
-/// 家庭农业生产收入按劳动时间比例分配到个人
+// divide family agricultural income to person by working time ratio
 forvalues i = 2/6 {
 	replace qg20`i' = 0 if qg20`i' == -8 
 	replace qg20`i' = . if qg20`i' < 0 
@@ -129,7 +129,7 @@ keep pid `vars'
 cd "$mydir\3_LIHK"
 save inc_12, replace
 
-*------ 1.6.处理2010年个人自答问卷，保留变量
+*------1.6 CFPS 2010
 cd "$rawdir\2010-2020-CFPS"
 use cfps2010adult_201906, clear
 replace cyear = 2010
@@ -139,8 +139,8 @@ rename (`vars') (age eduy)
 gen employ = 0
 replace employ = 1 if qg3 == 1
 
-// 城市收入计算
-/// 工资性收入：职工工资、奖金、补贴、实物折合现金、第二职业收入和其他劳动收入
+// urban income
+// salary income: 职工工资、奖金、补贴、实物折合现金、第二职业收入和其他劳动收入
 forvalues i = 1/6 {
 	replace qk10`i' = 0 if qk10`i' == -8
 	replace qk10`i' = . if qk10`i' < 0
@@ -178,7 +178,7 @@ sor `vars'
 cd "$mydir\3_LIHK"
 save inc_10, replace
 
-*--- 2 合并所有年份收入数据
+*---2 merge micro income data of all years 
 cd "$mydir\3_LIHK"
 use inc_10, clear
 forvalues i = 12(2)20 {
@@ -191,9 +191,13 @@ drop if (age > 59 | age < 16) & gender == 1
 drop if (age > 54 | age < 16) & gender == 0
 keep if employ == 1 // 保留劳动年龄人口
 
-// 删除缺失值
+// delete extremes of income
 bys cyear: egen pinc = mean(inc)
-bys cyear: keep if inc >= pinc/20 & inc < 15*pinc // 删除收入的极端值
+bys cyear: keep if inc >= pinc/20 & inc < 15*pinc
+
+save tmp_inc, replace
+
+// delete missing vals 
 local vars "urban gender age eduy inc"
 foreach i in `vars' {
 	replace `i' = . if `i' < 0
@@ -206,7 +210,8 @@ keep pid cyear provcd `vars'
 order pid cyear provcd `vars'
 sor cyear provcd `vars'
 
-gen exp = max(age-eduy-6, 0) // 定义工作经验
+// define working exp
+gen exp = max(age-eduy-6, 0) 
 replace exp = max(eduy-16, 0) if eduy < 10
 replace exp = 0 if exp < 0
 gen exp2 = exp^2
