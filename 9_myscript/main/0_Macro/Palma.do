@@ -20,7 +20,7 @@ Note:数据来源
 ==================================================*/
 
 *--- 0 清空内存，定义路径
-cd "D:\Library\OneDrive\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
+cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
 do config.do
 
 *--- 1 读取城乡收入
@@ -56,3 +56,5 @@ gen palma_ratio = high_10_inc / low_40_inc
 
 * 删除按省份、年份的重复值，只保留计算过帕尔马比值的数据
 bysort provcd cyear: keep if _n == 1
+cd "$mydir/0_Macro"
+save palma_ratio, replace

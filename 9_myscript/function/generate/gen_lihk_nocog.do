@@ -30,30 +30,30 @@ forvalues i = 2010(2)2020 {
 	}
 
 // reg with x-terms
-	local vars "cons eduy eduy_wy eduy_indus exp exp2 avwage"
+	local vars "cons eduy eduy_wy exp exp2 avwage"
 	foreach v in `vars' {
 		gen b_`v' = .
 	}
 	gen a = .
 	
-	// model0: without x-terms
+	// model00: without x-terms
 	di _newline(3)
 	di("*--------------------------------------------------------*")
 	di "reg Linc eduy exp exp2"
 	di("*--------------------------------------------------------*")
 	reg Linc eduy exp exp2
 
-	// model1: with x-terms [eduy*wy]
+	// model01: with x-terms [eduy*wy]
 	di _newline(3)
 	di("*--------------------------------------------------------*")
-	di "reg Linc avwage eduy eduy_wy exp exp2"	
+	di "reg Linc eduy eduy_wy exp exp2 avwage"	
 	di("*--------------------------------------------------------*")
-	reg Linc avwage eduy eduy_wy exp exp2
+	reg Linc eduy eduy_wy exp exp2 avwage
 
 *------1.2 by-sample regression [urban male/urban female/rural male/rural female]
 	di _newline(3)
 	foreach a in 0 1 {     
-		foreach b in 0 1 {
+		foreach b in 0 1 { 
 			di "urban = "`a'
 			di "gender = "`b'
 
@@ -67,13 +67,13 @@ forvalues i = 2010(2)2020 {
 			drop ooo lyhat
 			
 			// model1: with x-terms [eduy*wy]
-			di "reg Linc avwage eduy eduy_wy exp exp2"
+			di "reg Linc eduy eduy_wy exp exp2 avwage"
 			reg Linc avwage eduy eduy_wy exp exp2 ///
 				if urban == `a' & gender == `b'
 			
 			// 保存Mincer系数
 			replace b_cons = _b[_cons] if urban == `a' & gender == `b'  
-			local vars "avwage eduy eduy_wy eduy_indus exp exp2"
+			local vars "avwage eduy eduy_wy exp exp2 avwage"
 			foreach v in `vars' {
 				replace b_`v' = _b[`v'] if urban == `a' & gender == `b'
 			}
@@ -88,9 +88,9 @@ forvalues i = 2010(2)2020 {
 		}		
 	}	
 
-*------ 2.3.根据分省份、城乡的平均工资水平，调整估计出的系数
+*------1.3 adjust beta of Mincer equation by avg_wage of province and urban
 	gen intercept = b_cons + b_avwage * avwage
-	gen idx_eduy = b_eduy + b_eduy_wy * wy / 1000 + b_eduy_indus * indus
+	gen idx_eduy = b_eduy + b_eduy_wy * wy / 1000
 	gen idx_exp = b_exp
 	gen idx_exp2 = b_exp2
 
@@ -99,7 +99,7 @@ forvalues i = 2010(2)2020 {
 	save `i'_param_nocog, replace
 }
 
-// 分城乡、性别，保存调整后的Mincer方程截距
+// save adjusted intercept of Mincer equation by urban and gender 
 forvalues i = 2010(2)2020 {
 	foreach j in 0 1 {
 		foreach k in 0 1 {
@@ -123,7 +123,7 @@ forvalues i = 2010(2)2020 {
 	erase `i'_int11_nocog.dta
 }
 
-*------ 2.4.合并历年Mincer系数，保存个体层面数据
+*------1.4 merge betas and intercept of Mincer Eq and save micro data 
 cd "$mydir\3_LIHK\MincerParam"
 use 2010_param_nocog, clear
 forvalues i = 2012(2)2020 {
@@ -134,11 +134,10 @@ erase 2010_param_nocog.dta
 keep cyear provcd urban gender age eduy exp* idx* int* 
 save 1_Param_nocog, replace
 
-*------ 2.5.Mincer方程参数（截距、受教育年限、认知技能、工作经验、工作经验平方项）对时间回归，得到参数拟合值
+*------1.5 regress betas and intercept to year, and generate estimated parameters
 cd "$mydir\3_LIHK\MincerParam"
 use 1_Param_nocog, clear
 
-// 删除样本量不足的省份
 local vars "provcd urban gender"
 duplicates drop cyear `vars', force
 /* bys `vars': gen group_size = _N
@@ -155,7 +154,7 @@ gen idx_cog_1 = .
 gen idx_exp_1 = .
 gen idx_exp2_1 = .
 
-// 拟合
+// estimate
 levelsof id, local(id_list)
 foreach i in `id_list' {
 	cap gen cyear2 = cyear ^ 2
@@ -199,7 +198,7 @@ merge 1:m `vars' using 1_Param_nocog, nogen keep(match)
 save 2_Param_estimate_nocog, replace
 erase tmp_idx_nocog.dta
 
-*------ 2.6.基于拟合参数，计算人力资本指数
+*------1.6 generate lihk index using estimated params
 // 标准工人：农村女性
 cd "$mydir\3_LIHK\MincerParam"
 use 2_Param_estimate_nocog, clear
@@ -230,22 +229,22 @@ sor `vars'
 keep `vars' avg_idx_h
 save 2_ParamGroup1_nocog, replace
 
-*--- 3.分年份、分省份计算人力资本存量
-*------3.1.链接CHLR的四分人口
+*---2 generate lihk stock by year and prov
+*------2.1 merge params with 4-fold pop (with ) 链接CHLR的四分人口
 cd "$mydir\3_LIHK\MincerParam"
 use 2_ParamGroup1_nocog, clear 
 cd "$mydir\2_Cog\worker"
 local vars "cyear provcd urban gender age sch"
-merge 1:1 `vars' using 9_Macro_Pop4_Cog4, nogen keep(match) 
+merge 1:1 `vars' using 2_Macro_Pop4_pCog4, nogen keep(match) 
 sor `vars'
 order `vars'
 gen h = avg_idx_h * pop
-label var h "四分人口LIHK存量"
+label var h "lihk stock of 4-fold"
 cd "$mydir\3_LIHK"
 save 2_LIHKGroup1_nocog, replace
 
 bys cyear provcd: egen H = total(h)
 duplicates drop cyear provcd, force
-label var H "分省LIHK存量"
+label var H "lihk stock of 0-fold"
 cd "$mydir\3_LIHK"
 save 2_LIHKGroup2_nocog, replace

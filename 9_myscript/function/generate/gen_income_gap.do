@@ -19,11 +19,10 @@ import excel "2010-2020-城乡居民人均可支配收入.xlsx", sh("rural") fir
 gather 全国-新疆, variable(provcd) value(inc_rural)
 cd "$mydir/0_Macro"
 mer 1:1 cyear provcd using "tmp_inc_urban.dta", nogen
+ren provcd prov_hanzi
 
 cd "$mydir/0_Macro"
-merge m:1 provcd using "province_codes.dta", nogen
-drop provcd 
-ren prov provcd 
+merge m:1 prov_hanzi using "province_codes.dta", nogen
 
 *--- 2 计算人均可支配比值
 gen inc_ratio = inc_rural / inc_urban 

@@ -90,21 +90,21 @@ forvalues i = 2010(2)2020 {
 			
 			//增加交互项，重新估计
 			di "reg Linc avwage eduy eduy_wy eduy_indus exp exp2"
-			reg Linc avwage eduy eduy_wy eduy_indus st_cog cog_wy cog_indus exp exp2 ///
+			reg Linc avwage eduy eduy_wy st_cog cog_wy exp exp2 ///
 				if urban == `a' & gender == `b'
 			
 			//保存Mincer系数
 			replace b_cons = _b[_cons] if urban == `a' & gender == `b'  
-			local vars "avwage eduy eduy_wy eduy_indus st_cog cog_wy cog_indus exp exp2"
+			local vars "avwage eduy eduy_wy st_cog cog_wy exp exp2"
 			foreach v in `vars' {
 				replace b_`v' = _b[`v'] if urban == `a' & gender == `b'
 			}
 			
 			//计算alpha
 			predict idx, xb                   
-			gen mi = exp(idx) if urban==`a' & gender==`b'           
-			reg Linc mi, noconstant       
-			replace a = _b[mi] if urban==`a' & gender==`b'
+			gen mi = exp(idx) if urban == `a' & gender == `b'           
+			reg Linc mi, noconstant     
+			replace a = _b[mi] if urban == `a' & gender == `b'
 			drop idx mi
 			di _newline(3)
 		}		
@@ -112,8 +112,8 @@ forvalues i = 2010(2)2020 {
 
 *------1.3 根据分省份、城乡的平均工资水平，调整估计出的系数
 	gen intercept = b_cons + b_avwage * avwage
-	gen idx_eduy = b_eduy + b_eduy_wy * wy / 1000 + b_eduy_indus * indus
-	gen idx_cog = b_st_cog + b_cog_wy * wy / 1000 + b_cog_indus * indus
+	gen idx_eduy = b_eduy + b_eduy_wy * wy / 1000
+	gen idx_cog = b_st_cog + b_cog_wy * wy / 1000
 	gen idx_exp = b_exp
 	gen idx_exp2 = b_exp2
 
@@ -161,7 +161,6 @@ save 1_Param, replace
 cd "$mydir\3_LIHK\MincerParam"
 use 1_Param, clear
 
-// 删除样本量不足的省份
 local vars "provcd urban gender"
 duplicates drop cyear `vars', force
 /* bys `vars': gen group_size = _N

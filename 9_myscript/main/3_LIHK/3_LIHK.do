@@ -42,7 +42,7 @@ gr export "2_LnPincome.png", as(png) replace */
 
 *---3 generate lihk index
 cd "$funcdir\generate"
-do gen_lihk.do 
+do gen_lihk_nocog.do 
 
 *---4 describe lihk stock
 cd "$funcdir\describe"
