@@ -36,7 +36,8 @@ gen idx_gdp_base2010 = .
 bys provcd(cyear): replace idx_gdp_base2010 = 100 if cyear == 2010
 bys provcd(cyear): replace idx_gdp_base2010 = idx_gdp_base2010[_n-1] * (idx_gdp / 100) if cyear > 2010
 gen gdp_base2010 = (gdp / idx_gdp_base2010) * 100
-
+gen lny = ln(gdp_base2010)
+label var lny "log 2010-based gdp (billion RMB)"
 label var gdp_base2010 "2010 based gdp (billion RMB)"
 order cyear provcd gdp_base2010 gdp 
 save tmp_gdp, replace

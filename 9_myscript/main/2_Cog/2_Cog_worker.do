@@ -56,7 +56,7 @@ cd "$funcdir\generate"
 do gen_adjusted_eduy.do
 
 *---5 describe distribution of avg std_cog of 0-fold pop, avg edu_year and avg adjusted edu_year 
-cd "$funcdir\describe"
-do des_cog.do
+/* cd "$funcdir\describe"
+do des_cog.do */
 
 

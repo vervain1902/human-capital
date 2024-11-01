@@ -16,7 +16,10 @@ library(naniar)
 library(skimr)
 library(GGally)
 library(paletteer)
-library(broom)
+library(plm)
+library(kableExtra)
+library(zoo)
+library(stargazer)
 
 # 设置全局路径变量 ----
 dir <- "D:/# Library/1 Seminar/1_Publishs/1031-认知技能/data"

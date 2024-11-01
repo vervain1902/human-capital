@@ -44,7 +44,7 @@ gr export "2_LnPincome.png", as(png) replace */
 cd "$funcdir\generate"
 do gen_lihk_nocog.do 
 
-*---4 describe lihk stock
-cd "$funcdir\describe"
-do des_lihk.do 
+cd "$funcdir\generate"
+do gen_lihk_cog.do 
+
 

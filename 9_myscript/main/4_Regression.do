@@ -1,65 +1,68 @@
 cls
 /*==================================================
 
-Proiect:  劳动力人力资本数量、质量与经济增长 - 估计回归方程
-Author:   liuziyu
+Proiect: 劳动力人力资本数量、质量与经济增长 - reg ln_gdp ~ peduy0, a_peduy0, pcog0, and lihk0 
+Author:  liuziyu
 Created Date: 2023.12
-Last Edited Date:  2024.10.28
+Last Edited Date: 2024.11.01
 
 --------------------------------------------------
 
-This script is for: 
-	- 估计人力资本对经济增长的贡献
-		- 数量指标：平均受教育年限/调整值
-		- 质量指标：认知技能、LIHK方法测算的人力资本
-
-- 更新：
-		- 北京LIHK样本量不足的问题
-		- 6年LIHK部分省份缺失的问题
-		- 回归部分
-
-Note: database used 
-	CFPS 2010-2020
-	CHLR 2010-2020
-	Yearbook 2010-2020
+This script is for:
+	1) reading micro income data from CFPS database, 
+	2) merge micro income data and [micro cognitive skill], [macro data, 4-fold pop, average cognitive skill], 
+	3) generate lihk index， 
+	4) describe lihk stock.
 
 ==================================================*/
 
-*--- 0.清空内存，定义路径
+*---0 Program set up
 cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
 do config.do
 
-*--- 1.读取宏观、三分人口、平均受教育年限、认知技能数据
-cd "$mydir\2_Cog\worker"
-use 7_Macro_Pop0_aEduy_Cog, clear
-drop if provcd == 0
-xtset provcd cyear
+*---1 import 0-fold pop data with macro vars, pcog0, peduy0, a_peduy0, and lihk0
+cd "$mydir\3_LIHK"
+use 5_Macro_Pop0_pCog0_aEduy0_Cog_Inc_LIHK0_cog, clear 
+duplicates drop cyear provcd, force
+xtset provcd cyear 
+xtdescribe
 
-gen lpcog0 = ln(pcog0)
-gen la_peduy0 = ln(a_peduy0)
+*---2 modeling
+*------2.1 reg lny peduy0 and covariates [K]
+local vars "lny peduy0 K"
+xtreg `vars', fe
+estimates store model_fe
+xtreg `vars', re
+estimates store model_re
 
-egen st_pcog0 = std(pcog0)
-egen st_a_peduy0 = std(a_peduy0)
+local vars "lny a_peduy0 K"
+xtreg `vars', fe
+estimates store model_fe
+xtreg `vars', re
+estimates store model_re
 
-egen st_lpcog0 = std(lpcog0)
-egen st_la_peduy0 = std(la_peduy0)
-egen st_lnty = std(lnty)
+local vars "lny a_peduy pcog0 K"
+xtreg `vars', fe
+estimates store model_fe1
+xtreg `vars', re
+estimates store model_re1
 
-*--- 2. 建模
-*------ 2.1.平均受教育年限、平均受教育年限的调整值
-// 基准回归
-/* eststo m11: areg lnty peduy0, absorb(provcd) beta 
-eststo m12: areg lnty a_peduy0, absorb(provcd) beta 
-eststo m23: areg lnty pcog0, absorb(provcd) beta 
-eststo m31: areg lnty pcog0 peduy0, absorb(provcd) beta  */
-/* eststo m31: xtreg st_lnty st_pcog0 st_a_peduy0, fe
-eststo m32: xtreg st_lnty st_pcog0 st_a_peduy0
-eststo m33: xtreg st_lnty st_lpcog0 st_la_peduy0, fe
-eststo m34: xtreg st_lnty st_lpcog0 st_la_peduy0 */
+local vars "lny a_peduy0 pcog0 K"
+xtreg `vars', fe
+estimates store model_fe2
+xtreg `vars', re
+estimates store model_re2
 
-/* eststo m35: xtreg st_lnty lpcog0 la_peduy0, fe
-eststo m36: xtreg st_lnty lpcog0 la_peduy0 */
-cd "$outdir\4_Reg"
+cd "$desdir\3_LIHK"
+esttab model_fe model_re model_fe1 model_re1 model_fe2 model_re2 using "model_results.csv", ///
+    cells(b(fmt(3)) se(fmt(3)) p(fmt(3) star)) ///
+    stats(N ar2) ///
+    title("Panel Regression Results") ///
+    replace
+
+
+
+
 esttab /* m1* m2* */ m3* using reg2.csv, ar2 t p pa replace
 
 // 加入控制变量：劳动力人口数、滞后GDP、产业结构、外贸依存度、政府支持、城镇化率

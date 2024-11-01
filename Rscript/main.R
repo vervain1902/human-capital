@@ -1,0 +1,237 @@
+# 0. Info ----
+
+# Project: Human capital and economic growth
+# Author: LiuZiyu
+# Created date: 2024/10
+# Last edited date: 2024/10/31
+
+# This script is for: 
+#   1) reg eduy, adj_eduy, st_cog and lihk stock to 
+#       gdp, income gap and new quality productivity
+
+source("D:/# Library/1 Seminar/1_Publishs/1031-认知技能/data/Rscript/config.R")
+lihk_dir <- file.path(mydir, "3_LIHK")
+des_lihk_dir <- file.path(desdir, "3_LIHK")
+
+# 1 import data and set panel ----
+file_name <- file.path(lihk_dir, "5_Macro_Pop0_pCog0_aEduy0_Cog_Inc_LIHK0_cog.dta")
+df_lihk <- import(file_name) %>%
+  distinct(cyear, provcd, .keep_all = TRUE) %>%
+  mutate(cyear = as.factor(cyear),
+         provcd = as.factor(provcd))
+
+df <- pdata.frame(df_lihk, index = c("provcd", "cyear"))
+
+# 2 descriptive analysis ----
+dfSummary(df) %>% stview()
+
+ggplot(df, aes(x = cyear, y = lny)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "时间序列图")
+
+# 2 estimate panel model ----
+# 2.1 fixed effect model ----
+# 1) individual fixed effect model ----
+within1 <- list(
+  within11 = plm(lny ~ eduy0 + K, 
+               data = df, effect = "individual", model = "within"),
+  within12 = plm(lny ~ a_eduy0 + K, 
+               data = df, effect = "individual", model = "within"),
+  within13 = plm(lny ~ eduy0 + pcog0 + K, 
+               data = df, effect = "individual", model = "within"),
+  within14 = plm(lny ~ a_eduy0 + pcog0 + K, 
+               data = df, effect = "individual", model = "within"),
+  within15 = plm(lny ~ a_eduy0 + pcog0 + lihk0 + K, 
+               data = df, effect = "individual", model = "within")
+)
+
+# 2) time fixed effect model
+# within2 <- list(
+  within21 = plm(lny ~ eduy0 + K, 
+               data = df, effect = "time", model = "within")
+  within22 = plm(lny ~ a_eduy0 + K, 
+               data = df, effect = "time", model = "within")
+  within23 = plm(lny ~ eduy0 + pcog0 + K, 
+               data = df, effect = "time", model = "within")
+  within24 = plm(lny ~ a_eduy0 + pcog0 + K, 
+               data = df, effect = "time", model = "within")
+  within25 = plm(lny ~ a_eduy0 + pcog0 + lihk0 + K, 
+               data = df, effect = "time", model = "within")
+# )
+
+# 3) twoway (individual & time) fixed effect model
+within3 <- list(
+  within31 = plm(lny ~ eduy0 + K, 
+                 data = df, effect = "twoway", model = "within"),
+  within32 = plm(lny ~ a_eduy0 + K, 
+                 data = df, effect = "twoway", model = "within"),
+  within33 = plm(lny ~ eduy0 + pcog0 + K, 
+                 data = df, effect = "twoway", model = "within"),
+  within34 = plm(lny ~ a_eduy0 + pcog0 + K, 
+                 data = df, effect = "twoway", model = "within"),
+  within35 = plm(lny ~ a_eduy0 + pcog0 + lihk0 + K, 
+                 data = df, effect = "twoway", model = "within")
+)
+
+# 2.2 random effect model ----
+# 1) individual
+random1 <- list(
+  random11 = plm(lny ~ eduy0 + K, 
+                 data = df, effect = "individual", model = "random"),
+  random12 = plm(lny ~ a_eduy0 + K, 
+                 data = df, effect = "individual", model = "random"),
+  random13 = plm(lny ~ eduy0 + pcog0 + K, 
+                 data = df, effect = "individual", model = "random"),
+  random14 = plm(lny ~ a_eduy0 + pcog0 + K, 
+                 data = df, effect = "individual", model = "random"),
+  random15 = plm(lny ~ a_eduy0 + pcog0 + lihk0 + K, 
+                 data = df, effect = "individual", model = "random")
+)
+
+# 2) time
+# random2 <- list(
+  random21 = plm(lny ~ eduy0 + K, 
+                 data = df, effect = "individual", model = "random")
+  random22 = plm(lny ~ a_eduy0 + K, 
+                 data = df, effect = "individual", model = "random")
+  random23 = plm(lny ~ eduy0 + pcog0 + K, 
+                 data = df, effect = "individual", model = "random")
+  random24 = plm(lny ~ a_eduy0 + pcog0 + K, 
+                 data = df, effect = "individual", model = "random")
+  random25 = plm(lny ~ a_eduy0 + pcog0 + lihk0 + K, 
+                 data = df, effect = "individual", model = "random")
+# )
+
+# run hausman test to decide better model ----
+hausman_test <- phtest(within21, random21)
+plot(l$residuals)
+
+file_name <- file.path(des_lihk_dir, "model_result_new.csv")
+model_summary <- summary(random21)
+results_df <- data.frame(
+  Coefficients = model_summary$coefficients[, 1],
+  Std.Error = model_summary$coefficients[, 2],
+  t.value = model_summary$coefficients[, 3],
+  Pr = model_summary$coefficients[, 4],
+)
+
+
+stargazer(within21, within22, within23, within24, within25,
+          type = "text",
+          title = "回归结果",
+          out = file_name,
+          add.lines = list(
+            c("样本量", 
+              nobs(within21), 
+              nobs(within22), 
+              nobs(within23), 
+              nobs(within24), 
+              nobs(within25)),
+            c("调整R²", 
+              summary(within21)$adj.r.squared, 
+              summary(within22)$adj.r.squared, 
+              summary(within23)$adj.r.squared, 
+              summary(within24)$adj.r.squared, 
+              summary(within25)$adj.r.squared)
+          )
+)
+
+
+# # 提取结果并整理
+# results <- lapply(models, function(model) {
+#   model_tidy <- tidy(model)
+#   model_sum <- summary(model)
+#   tibble(
+#     term = model_tidy$term,
+#     estimate = model_tidy$estimate,
+#     std.error = model_tidy$std.error,
+#     statistic = model_tidy$statistic,
+#     p.value = model_tidy$p.value,
+#     adj_r_squared = model_sum$adj.r.squared,
+#     nobs = model$nobs
+#   )
+# })
+# 
+# # 合并结果
+# final_results <- bind_rows(results, .id = "model")
+# 
+# # 保存结果为CSV
+# write.csv(final_results, "model_results.csv", row.names = FALSE)
+# 
+# # 创建三线表
+# final_table <- final_results %>%
+#   select(model, term, estimate, std.error, statistic, p.value, adj_r_squared, nobs) %>%
+#   kbl() %>%
+#   kable_styling("striped", full_width = F)
+# 
+# # 输出三线表
+# print(final_table)
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# # model1 <- plm(lny ~ eduy0 + K, data = p_df, model = "within")
+# # model2 <- plm(lny ~ a_eduy0 + K, data = p_df, model = "within")
+# # model3 <- plm(lny ~ eduy0 + pcog0 + K, data = p_df, model = "within")
+# # model4 <- plm(lny ~ a_eduy0 + pcog0 + K, data = p_df, model = "within")
+# # model5 <- plm(lny ~ lihk0 + K, data = p_df, model = "within")
+# # 
+# # # 整理结果
+# # results <- list(
+# #   model1 = summary(model1) %>%
+# #     mutate(p.value = formatC(p.value, format = "f", digits = 3)),
+# #   model2 = summary(model2) %>%
+# #     mutate(p.value = formatC(p.value, format = "f", digits = 3)),
+# #   model3 = summary(model3) %>%
+# #     mutate(p.value = formatC(p.value, format = "f", digits = 3)),
+# #   model4 = summary(model4) %>%
+# #     mutate(p.value = formatC(p.value, format = "f", digits = 3)),
+# #   model5 = summary(model5) %>%
+# #     mutate(p.value = formatC(p.value, format = "f", digits = 3))
+# # )
+# # 
+# # summary_df <- data.frame()
+# # 
+# # for (i in seq_along(results)) {
+# #   model_summary <- results[[i]]
+# #   
+# #   model_info <- data.frame(
+# #     model = paste("模型", i),
+# #     adjusted R2 = model_summary$r.squared,
+# #     N = model_summary$n,
+# #     intercept = model_summary$coefficients[1, 1],  # 截距项
+# #     包含地区固定效应 = "是"  # 假设所有模型都包含固定效应
+# #   )
+# #   
+# #   summary_df <- rbind(summary_df, model_info)
+# # }
+# # 
+# # results_df <- bind_rows(results, .id = "model")
+# # file_name <- file.path(des_lihk_dir, "main_summary.xlsx")
+# # export(results_df, file_name)

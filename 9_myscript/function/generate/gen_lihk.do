@@ -181,6 +181,7 @@ gen idx_exp2_1 = .
 levelsof id, local(id_list)
 foreach i in `id_list' {
 	cap gen cyear2=cyear^2
+	
 	qui reg intercept cyear if id==`i'
  	gen tem1=_b[cyear]
 	gen tem3=_b[_cons]
@@ -222,10 +223,12 @@ foreach i in `id_list' {
 
 local vars "cyear provcd gender urban"
 keep `vars' *_1
+sor `vars'
 save tmp_idx, replace
 
 local vars "cyear provcd gender urban"
 merge 1:m `vars' using 1_Param, nogen keep(match)
+sor `vars'
 save 2_Param_estimate, replace
 erase tmp_idx.dta
 
