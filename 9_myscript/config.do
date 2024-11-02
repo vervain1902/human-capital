@@ -22,6 +22,7 @@ global dir "D:/# Library/1 Seminar/1_Publishs/1031-认知技能/data"
 	global mydir "$dir/1_mydata"
 	global desdir "$dir/2_description"
 	global scriptdir "$dir/9_myscript"
+	global outdir "$dir/3_output"
 		global funcdir "$scriptdir/function"
 
 *--- 2 define province codes 

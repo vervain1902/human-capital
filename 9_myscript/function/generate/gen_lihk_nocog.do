@@ -4,7 +4,7 @@ cls
 Proiect:  劳动力人力资本数量、质量与经济增长 - estimate lihk index [without cog]
 Author:   liuziyu
 Created Date: 2023.12
-Last Edited Date:  2024.10.31
+Last Edited Date:  2024.11.02
 
 ==================================================*/
 

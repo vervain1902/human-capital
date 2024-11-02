@@ -4,7 +4,7 @@ cls
 Proiect: 劳动力人力资本数量、质量与经济增长 - 劳动力收入法测算人力资本
 Author:  liuziyu
 Created Date: 2023.12
-Last Edited Date: 2024.10.28
+Last Edited Date: 2024.11.02
 
 --------------------------------------------------
 

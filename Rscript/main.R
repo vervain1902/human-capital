@@ -23,7 +23,12 @@ df_lihk <- import(file_name) %>%
 df <- pdata.frame(df_lihk, index = c("provcd", "cyear"))
 
 # 2 descriptive analysis ----
+setwd(des_lihk_dir)
 dfSummary(df) %>% stview()
+
+skim(df)
+
+gt_plt_summary(df)
 
 ggplot(df, aes(x = cyear, y = lny)) +
   geom_line() +
