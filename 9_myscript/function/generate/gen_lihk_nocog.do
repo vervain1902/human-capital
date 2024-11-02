@@ -67,12 +67,12 @@ forvalues i = 2010(2)2020 {
 			
 			// model1: with x-terms [eduy*wy]
 			di "reg Linc eduy eduy_wy exp exp2 avwage"
-			reg Linc avwage eduy eduy_wy exp exp2 ///
+			reg Linc eduy eduy_wy exp exp2 avwage ///
 				if urban == `a' & gender == `b'
 			
 			// 保存Mincer系数
 			replace b_cons = _b[_cons] if urban == `a' & gender == `b'  
-			local vars "avwage eduy eduy_wy exp exp2 avwage"
+			local vars "eduy eduy_wy exp exp2 avwage"
 			foreach v in `vars' {
 				replace b_`v' = _b[`v'] if urban == `a' & gender == `b'
 			}
@@ -149,17 +149,17 @@ gen idx_eduy_fit = .
 gen idx_exp_fit = .
 gen idx_exp2_fit = .
 
-// estimate
+// reg Mincer parameters cyear to generate fitted parameters
 levelsof id, local(id_list)
 foreach i in `id_list' {
 
 	quietly count if id == `i'
 	    if r(N) < 2 {
-	        // 如果样本量小于 2，则设置拟合值为 NA
-	        replace intercept_fit = . if id == `i'
-	        replace idx_eduy_fit = . if id == `i'
-	        replace idx_exp_fit = . if id == `i'
-	        replace idx_exp2_fit = . if id == `i'
+	        // 如果样本量小于 2，则设置拟合值为原始值
+	        replace intercept_fit = intercept if id == `i'
+	        replace idx_eduy_fit = idx_eduy if id == `i'
+	        replace idx_exp_fit = idx_exp if id == `i'
+	        replace idx_exp2_fit = idx_exp2 if id == `i'
 	        continue
 	    }
 
@@ -226,7 +226,7 @@ replace sch = 16 if eduy >= 16
 local vars "cyear provcd urban gender age sch"
 bys `vars': egen idx_h4 = mean(idx_h)
 duplicates drop `vars', force 
-keep `vars' idx_h4
+keep `vars' idx_h4 idx_h
 cd "$mydir\2_Cog\worker"
 local vars "cyear provcd urban gender age sch"
 merge 1:1 `vars' using 2_Macro_Pop4_pCog4, nogen keep(match) 

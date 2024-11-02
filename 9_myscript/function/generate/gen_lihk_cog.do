@@ -158,11 +158,11 @@ foreach i in `id_list' {
 	quietly count if id == `i'
 	    if r(N) < 2 {
 	        // 如果样本量小于 2，则设置拟合值为 NA
-	        replace intercept_fit = . if id == `i'
-	        replace idx_eduy_fit = . if id == `i'
-	        replace idx_cog_fit = . if id == `i'
-	        replace idx_exp_fit = . if id == `i'
-	        replace idx_exp2_fit = . if id == `i'
+	        replace intercept_fit = intercept if id == `i'
+	        replace idx_eduy_fit = idx_eduy if id == `i'
+	        replace idx_exp_fit = idx_exp if id == `i'
+	        replace idx_exp2_fit = idx_exp2 if id == `i'
+	        replace idx_cog_fit = idx_cog if id == `i'
 	        continue
 	    }
 

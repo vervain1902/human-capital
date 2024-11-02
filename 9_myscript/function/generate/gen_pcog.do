@@ -61,9 +61,13 @@ save 4_Macro_Pop2_pCog2, replace
 use 1_Cog, clear
 local vars "cyear provcd"
 bys `vars': egen pcog0 = mean(st_cog)
+bys `vars': egen n_high_cog = total(high_cog)
+bys `vars': egen N = total(1)
+gen high_cog_rt = n_high_cog / N
 duplicates drop `vars', force 
-label var pcog "0-fold avg cog"
-keep `vars' pcog
+label var pcog0 "0-fold avg cog"
+label var high_cog_rt "ratio of higher cog pop"
+keep `vars' pcog0 high_cog_rt
 order `vars'
 sor `vars'
 cd "$mydir\1_Pop\worker"

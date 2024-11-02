@@ -28,18 +28,6 @@ do read_income.do
 cd "$funcdir\generate"
 do gen_income.do
 
-/* // 分省描述平均工资、对数平均工资的变化趋势
-cd "$mydir\3_LIHK"
-use 3_Macro_Pop4_Cog_LIHK, clear
-bys cyear provcd: egen pinc = mean(inc)
-gen Lpinc = ln(pinc)
-duplicates drop cyear provcd, force 
-twoway line pinc cyear, by(provcd) legend(off)
-cd "$desdir\3_LIHK"
-gr export "1_Pincome.png", as(png) replace
-twoway line Lpinc cyear, by(provcd) legend(off)
-gr export "2_LnPincome.png", as(png) replace */
-
 *---3 generate lihk index
 cd "$funcdir\generate"
 do gen_lihk_nocog.do 

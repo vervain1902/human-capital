@@ -54,6 +54,7 @@ p <- ggplot(df_cog_filtered1, aes(x = as.factor(cyear), y = st_cog)) +
 
 plot_name <- file.path(desdir, "2_Cog/worker/cog_distri/Violin", "violin_plot1_全国.jpg")
 ggsave(plot = p, filename = plot_name)  # 保存图形为 PNG 文件
+print("2010, 2014 and 2018 national distribution of standardized cog saved.")
 
 median2_2012 <- median(df_cog_filtered2$st_cog[df_cog_filtered2$cyear == 2012], na.rm = TRUE)
 
@@ -68,6 +69,7 @@ p <- ggplot(df_cog_filtered2, aes(x = as.factor(cyear), y = st_cog)) +
 
 plot_name <- file.path(desdir, "2_Cog/worker/cog_distri/Violin", "violin_plot2_全国.jpg")
 ggsave(plot = p, filename = plot_name)  # 保存图形为 PNG 文件
+print("2012, 2016 and 2020 national distribution of standardized cog saved.")
 
 # 2.2 distribution of st_cog [by province, violin plot] ---- 
 for (prov in names(df_cog_filtered1_split)) {
@@ -83,7 +85,8 @@ for (prov in names(df_cog_filtered1_split)) {
     theme_minimal()
     
     plot_name <- file.path(desdir, "2_Cog/worker/cog_distri/Violin", paste0("violin_plot1_", prov, ".jpg"))
-    ggsave(plot = p, filename = plot_name)  # 保存图形为 PNG 文件
+    ggsave(plot = p, filename = plot_name)  
+    print(paste0("2010, 2014 and 2018 ", prov, " distribution of standardized cog saved."))
 }
 
 for (prov in names(df_cog_filtered2_split)) {
@@ -99,7 +102,8 @@ for (prov in names(df_cog_filtered2_split)) {
     theme_minimal()
   
   plot_name <- file.path(desdir, "2_Cog/worker/cog_distri/Violin", paste0("violin_plot2_", prov, ".jpg"))
-  ggsave(plot = p, filename = plot_name)  # 保存图形为 PNG 文件
+  ggsave(plot = p, filename = plot_name)  
+  print(paste0("2012, 2016 and 2020 ", prov, " distribution of standardized cog saved."))
 }
 
 # 3 describe raw vals and adjusted vals of avg edu_year ----

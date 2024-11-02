@@ -29,6 +29,10 @@ do config.do
 *---1 generate dependent vars: 2010_based GDP, average GDP, work_aged average gdp, urban_rural income gap and Palma index
 cd "$scriptdir\function\generate"
 do gen_gdp.do
+cd "$scriptdir\function\generate"
+do gen_palma.do
+cd "$scriptdir\function\generate"
+do gen_income_gap.do
 
 *---2 generate average urban and rural wage 
 cd "$scriptdir\function\generate"
@@ -48,7 +52,7 @@ foreach file in `files' {
     drop _merge 
 }
 
-keep if cyear == 2010 | cyear == 2012 | cyear == 2014 | cyear == 2016 | cyear == 2018 | cyear == 2020
+keep if inlist(cyear, 2010, 2012, 2014, 2016, 2018, 2020)
 
 gen gov = invest/gdp
 gen trade = im_export_rmb/gdp

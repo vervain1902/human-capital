@@ -4,7 +4,7 @@ cls
 Proiect: 劳动力人力资本数量、质量与经济增长 - reg ln_gdp ~ peduy0, a_peduy0, pcog0, and lihk0 
 Author:  liuziyu
 Created Date: 2023.12
-Last Edited Date: 2024.11.01
+Last Edited Date: 2024.11.02
 
 --------------------------------------------------
 
@@ -29,37 +29,45 @@ xtdescribe
 
 replace K = K / 10000
 label var K "material capital (billion yuan)"
-/* replace wpop = wpop / 10000
+replace wpop = wpop / 10000000
 label var wpop "size of labor pop (10,000)"
-replace tpop = tpop / 10000
-label var tpop "size of total pop (10,000)" */
+replace tpop = tpop / 10000000
+label var tpop "size of total pop (10,000)"
 
-estpost summarize lny tpop wpop K lihk0 peduy0 a_peduy0 pcog0
+estpost summarize lny tpop wpop K lihk0 peduy0 a_peduy0 pcog0 high_cog_rt
 
 *---2 modeling
 *------2.1 reg lny peduy0 pcog0 and covariates [K]
-local vars "lny peduy0 wpop K"
+local vars "lny peduy0 wpop "
 eststo fe0: xtreg `vars', fe
 eststo re0: xtreg `vars', re
 
-local vars "lny peduy0 pcog0 wpop K"
+/* local vars "lny peduy0 pcog0 wpop K"
+eststo fe1: xtreg `vars', fe
+eststo re1: xtreg `vars', re */
+
+local vars "lny peduy0 high_cog_rt wpop "
 eststo fe1: xtreg `vars', fe
 eststo re1: xtreg `vars', re
 
-local vars "lny a_peduy0 wpop K"
+local vars "lny a_peduy0 wpop "
 eststo fe2: xtreg `vars', fe
 eststo re2: xtreg `vars', re
 
-local vars "lny a_peduy0 pcog0 wpop K"
+/* local vars "lny a_peduy0 pcog0 wpop K"
+eststo fe3: xtreg `vars', fe
+eststo re3: xtreg `vars', re
+ */
+local vars "lny a_peduy0 high_cog_rt wpop "
 eststo fe3: xtreg `vars', fe
 eststo re3: xtreg `vars', re
 
 cd "$outdir"
-esttab *0 *1 *2 *3 using model_results_eduy_cog.csv, ///
+esttab *0 *1 *2 *3 using results_peduy0_hcog.csv, ///
 	star b(%9.3f) ar2(%9.3f) p(%9.3f) obslast pa nogap compress mtitle replace
 
-*------2.2 reg lny peduy0 pcog0 and covariates [K]
-local vars "lny lihk0 K"
+*------2.2 reg lny lihk0 and covariates [K]
+local vars "lny lihk0 K wpop"
 eststo m41: xtreg `vars', fe
 eststo m42: xtreg `vars', re
 

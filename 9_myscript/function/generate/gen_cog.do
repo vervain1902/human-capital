@@ -67,21 +67,6 @@ forvalues i = 10(2)20 {
 	cd "$mydir\2_Cog\worker"
 	use cfps`i'_1, clear
 
-/* 	// 描述历年各省不同年龄组的样本量
- 	tabplot provcd age_group, title("Number of age_groups in 20`i'") ytitle("Province", size(small)) ///
- 		ylabel(, labsize(small)) showval(offset(0.6)) barw(0.8) horizontal 								
-	cd "$desdir\2_Cog\worker\年龄组"	
-	gr export "Bar-AgeGroup_`i'_0.png", as(png) replace */
-
-/* 	// 分年度描述全国样本认知技能
-	foreach j in cog st_cog {
-	 	hist `j', freq normal graphregion(color(white)) fcolor(ebg) lcolor(gs8)	lwidth(medium) ///
-	 		normopts(lcolor(black)) title("Histogram of `j' in 20`i'") subtitle("") ytitle("Frequency", size(small)) ///
-	 		xtitle("Cognitive Skill", size(small)) xscale(titlegap(2)) 
-	 	cd "$desdir\2_Cog\worker\认知技能分布"
-	 	gr export "Hist-`j'_`i'_0.png", replace
-	} */
-
 	// 删除年龄组样本量不足的省份
 	duplicates drop age_group provcd, force
 	bys provcd: egen ngroup = count(age_group)
@@ -97,6 +82,10 @@ forvalues i = 10(2)20 {
 *------2.3 Construct secondary vars 
 	gen age2 = age^2
 
+	egen median_cog = median(st_cog)
+	gen high_cog = (st_cog > median_cog)
+	label var high_cog "higher than median"
+	
 	gen sch = 0
 	replace sch = 6 if eduy < 9 & eduy >= 6
 	replace sch = 9 if eduy < 12 & eduy >= 9
@@ -105,7 +94,7 @@ forvalues i = 10(2)20 {
 	replace sch = 16 if eduy >= 16
 
 	local vars "cyear provcd gender urban age sch age_group"
-	keep pid st_cog eduy age2 `vars'
+	keep pid st_cog high_cog eduy age2 `vars'
 	order `vars' 
 	sort `vars'
 
@@ -125,13 +114,6 @@ forvalues i = 10(2)20 {
 
 	cd "$mydir\2_Cog\worker"
 	save cfps`i'_2, replace // 保存删除样本的数据
-
-/* 	// 重新描述不同年龄组的样本量
- 	tabplot provcd age_group, title("New number of age_groups in 20`i'") ytitle("Province", size(small)) ///
-		ylabel(, labsize(small)) showval(offset(0.6)) barw(0.8) horizontal
- 	cd "$desdir\2_Cog\worker\年龄组"	
- 	gr export "Bar-AgeGroup_`i'_1.png", as(png) replace */
-
 }
 
 *---3 Merge micro cog data each year 

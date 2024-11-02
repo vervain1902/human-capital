@@ -25,11 +25,11 @@ cd "$mydir/0_Macro"
 merge m:1 prov_hanzi using "province_codes.dta", nogen
 
 *--- 2 计算人均可支配比值
-gen inc_ratio = inc_rural / inc_urban 
+gen inc_gap = inc_rural / inc_urban 
 
 sor cyear provcd 
 label var inc_urban "城镇人均可支配（元）"
 label var inc_rural "农村人均可支配（元）"
-label var inc_ratio "农村/城镇人均可支配"
+label var inc_gap "农村/城镇人均可支配"
 
 save 1_IncGap, replace

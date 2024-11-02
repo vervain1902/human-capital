@@ -8,10 +8,6 @@ Edit Date:  2024.10.28
 
 ==================================================*/
 
-*---0 Program set up
-cd "D:\# Library\1 Seminar\1_Publishs\1031-认知技能\data\9_myscript"
-do config.do
-
 *---1 Read micro income data from CFPS database
 *------1.1 CFPS 2020	
 cd "$rawdir\2010-2020-CFPS"
@@ -191,14 +187,21 @@ drop if (age > 59 | age < 16) & gender == 1
 drop if (age > 54 | age < 16) & gender == 0
 keep if employ == 1 // 保留劳动年龄人口
 
+// generate micro peduy
+bys cyear provcd: egen peduy_micro = mean(eduy)
+
+cd "$mydir\0_Macro"
+mer m:1 provcd using province_codes, nogen 
+drop if inlist(provcd, ., -9) 
+cd "$mydir\3_LIHK"
+save tmp_inc, replace
+
 // delete extremes of income
 bys cyear: egen pinc = mean(inc)
 bys cyear: keep if inc >= pinc/20 & inc < 15*pinc
 
-save tmp_inc, replace
-
 // delete missing vals 
-local vars "urban gender age eduy inc"
+local vars "provcd urban gender age eduy inc"
 foreach i in `vars' {
 	replace `i' = . if `i' < 0
 	misstable sum `i'
@@ -206,7 +209,7 @@ foreach i in `vars' {
 	di("Missing Values of Variable `j' is Deleted.")
 	drop if `i' == .
 }
-keep pid cyear provcd `vars'
+keep pid cyear provcd prov_hanzi region `vars'
 order pid cyear provcd `vars'
 sor cyear provcd `vars'
 
@@ -218,6 +221,7 @@ gen exp2 = exp^2
 gen Linc = ln(inc)
 replace Linc = 0 if Linc == .
 
+// define categorical education year 
 gen sch = 0 
 replace sch = 6 if eduy > 0 & eduy <= 6
 replace sch = 9 if eduy > 6 & eduy <= 9
@@ -234,5 +238,7 @@ label var inc "income per year (RMB)"
 label var exp "working year"
 label var exp2 "working year^2"
 label var Linc "log income per year"
+label var sch "categorical education year"
+label var peduy_micro "micro level avg education year"
 
 save 1_Inc, replace 

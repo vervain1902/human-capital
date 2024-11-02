@@ -53,4 +53,6 @@ prov_4_hanzi <- c("北京", "天津", "河北", "山西", "辽宁", "吉林", "�
                   "河南", "湖北", "湖南", "广东", "广西", "重庆", "四川", 
                   "贵州", "云南", "西藏", "陕西")
 
-colors <- scale_color_paletteer_d("palettetown::lairon")
+colors_grey <- scale_color_paletteer_d("palettetown::lairon")
+
+colors_color <- scale_color_paletteer_d("ggthemes::Classic_Blue_Red_12")
